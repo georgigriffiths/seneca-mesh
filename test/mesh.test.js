@@ -866,7 +866,6 @@ describe('#mesh', function() {
           ignore,
           out
         ) {
-          console.log(JSON.stringify(out, null, 2))
           expect(out['a:1,b:2,c:3']['a:1,b:2,c:3'].targets.length).to.equal(1)
           expect(out['a:1,c:3']['a:1,c:3'].targets.length).to.equal(1)
           expect(out['c:3']['c:3'].targets.length).to.equal(1)
@@ -874,18 +873,17 @@ describe('#mesh', function() {
         })
 
         .act('c:3,d:3,x:600', function(ignore, out) {
-          console.log('a:1,b:2,x:600', out)
           expect(out).to.equal({ s: 0, x: 600 })
 
           var s1 = Seneca({ legacy: { transport: false } })
             .test(done)
             .use(Mesh, { pins: ['a:1,b:2,c:3', 'a:1,c:3', 'c:3'] })
           s1.add('c:3,d:3', function(msg, reply) {
-            reply({ s: 0, x: msg.x })
+            reply({ s: 1, x: msg.x })
           })
 
           s1.add('a:1,c:3', function(msg, reply) {
-            reply({ s: 0, y: msg.y })
+            reply({ s: 1, y: msg.y })
           })
 
           setTimeout(function() {
@@ -894,7 +892,6 @@ describe('#mesh', function() {
                 ignore,
                 out
               ) {
-                console.log(JSON.stringify(out, null, 2))
                 expect(
                   out['a:1,b:2,c:3']['a:1,b:2,c:3'].targets.length
                 ).to.equal(2)
@@ -921,7 +918,6 @@ describe('#mesh', function() {
                       ignore,
                       out
                     ) {
-                      console.log(JSON.stringify(out, null, 2))
                       expect(
                         out['a:1,b:2,c:3']['a:1,b:2,c:3'].targets.length
                       ).to.equal(1)

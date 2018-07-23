@@ -849,19 +849,14 @@ describe('#mesh', function() {
     var s0 = Seneca({ legacy: { transport: false } })
       .test(done)
       .use(Mesh, { pins: ['a:1,b:2,c:3', 'a:1,c:3', 'c:3'] })
-    var c0 = Seneca({ legacy: { transport: false } })
+    var c0 = Seneca({ legacy: { transport: false }, log: 'all' })
       .test(done)
       .use(Mesh)
-
-    s0.add('a:1,b:2,c:3', function(msg, reply) {
+    s0.add('c:3,d:3', function(msg, reply) {
       reply({ s: 0, x: msg.x })
     })
 
-    s0.add('c:3,d:3', function(msg, reply) {
-      reply({ s: 0, y: msg.y })
-    })
-
-    s0.add('a:1,c:3,e:4', function(msg, reply) {
+    s0.add('a:1,c:3', function(msg, reply) {
       reply({ s: 0, y: msg.y })
     })
 
@@ -872,29 +867,27 @@ describe('#mesh', function() {
           out
         ) {
           console.log(JSON.stringify(out, null, 2))
-          expect(out['a:1,b:2,c3']['a:1,b:2,c3'].targets.length).to.equal(1)
-          expect(out['a1,c:3']['a1,c:3'].targets.length).to.equal(1)
+          expect(out['a:1,b:2,c:3']['a:1,b:2,c:3'].targets.length).to.equal(1)
+          expect(out['a:1,c:3']['a:1,c:3'].targets.length).to.equal(1)
           expect(out['c:3']['c:3'].targets.length).to.equal(1)
           //console.dir(out,{depth:null})
         })
 
-        .act('a:1,b:2,x:600', function(ignore, out) {
+        .act('c:3,d:3,x:600', function(ignore, out) {
+          console.log('a:1,b:2,x:600', out)
           expect(out).to.equal({ s: 0, x: 600 })
 
           var s1 = Seneca({ legacy: { transport: false } })
             .test(done)
             .use(Mesh, { pins: ['a:1,b:2,c:3', 'a:1,c:3', 'c:3'] })
-          s1.add('a:1,b:2,c:3', function(msg, reply) {
-            reply({ s: 1, x: msg.x })
-          })
-
           s1.add('c:3,d:3', function(msg, reply) {
-            reply({ s: 1, y: msg.y })
+            reply({ s: 0, x: msg.x })
           })
 
-          s1.add('a:1,c:3,e:4', function(msg, reply) {
-            reply({ s: 1, y: msg.y })
+          s1.add('a:1,c:3', function(msg, reply) {
+            reply({ s: 0, y: msg.y })
           })
+
           setTimeout(function() {
             c0
               .act('role:transport,type:balance,get:target-map', function(
@@ -902,22 +895,22 @@ describe('#mesh', function() {
                 out
               ) {
                 console.log(JSON.stringify(out, null, 2))
-                expect(out['a:1,b:2,c3']['a:1,b:2,c3'].targets.length).to.equal(
-                  2
-                )
-                expect(out['a1,c:3']['a1,c:3'].targets.length).to.equal(2)
+                expect(
+                  out['a:1,b:2,c:3']['a:1,b:2,c:3'].targets.length
+                ).to.equal(2)
+                expect(out['a:1,c:3']['a:1,c:3'].targets.length).to.equal(2)
                 expect(out['c:3']['c:3'].targets.length).to.equal(2)
                 //console.dir(out,{depth:null})
               })
 
-              .act('c:3,y:100', function(ignore, out) {
+              .act('a:1,c:3,y:100', function(ignore, out) {
                 expect(out).to.equal({ s: 0, y: 100 })
               })
 
-              .act('c:3,y:200', function(ignore, out) {
+              .act('a:1,c:3,y:200', function(ignore, out) {
                 expect(out).to.equal({ s: 1, y: 200 })
               })
-              .act('c:3,y:300', function(ignore, out) {
+              .act('a:1,c:3,y:300', function(ignore, out) {
                 expect(out).to.equal({ s: 0, y: 300 })
 
                 s0.close()
@@ -930,20 +923,22 @@ describe('#mesh', function() {
                     ) {
                       console.log(JSON.stringify(out, null, 2))
                       expect(
-                        out['a:1,b:2,c3']['a:1,b:2,c3'].targets.length
+                        out['a:1,b:2,c:3']['a:1,b:2,c:3'].targets.length
                       ).to.equal(1)
-                      expect(out['a1,c:3']['a1,c:3'].targets.length).to.equal(1)
+                      expect(out['a:1,c:3']['a:1,c:3'].targets.length).to.equal(
+                        1
+                      )
                       expect(out['c:3']['c:3'].targets.length).to.equal(1)
                       //console.dir(out,{depth:null})
                     })
-                    .act('c:3,y:100', function(ignore, out) {
+                    .act('a:1,c:3,y:100', function(ignore, out) {
                       expect(out).to.equal({ s: 1, y: 100 })
                     })
 
-                    .act('c:3,y:200', function(ignore, out) {
+                    .act('a:1,c:3,y:200', function(ignore, out) {
                       expect(out).to.equal({ s: 1, y: 200 })
                     })
-                    .act('c:3,y:300', function(ignore, out) {
+                    .act('a:1,c:3,y:300', function(ignore, out) {
                       expect(out).to.equal({ s: 1, y: 300 })
 
                       done()
